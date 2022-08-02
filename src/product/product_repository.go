@@ -6,9 +6,11 @@ type ProductRepository struct {
 	products map[int]Product
 }
 
-func (r ProductRepository) GetById(id int) Product {
-	time.Sleep(time.Second * 3)
-	return r.products[id]
+// Retorno nomeado
+func (r ProductRepository) GetById(id int) (p Product) {
+	time.Sleep(time.Millisecond * 300)
+	p = r.products[id]
+	return
 }
 
 func (r *ProductRepository) Seed() {

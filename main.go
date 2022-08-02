@@ -6,26 +6,28 @@ import (
 	"github.com/mrbrunelli/go-concurrency/src/product"
 )
 
-func getProduct(id int, repo *product.ProductRepository, ch chan string) {
+func getProduct(id int, repo *product.ProductRepository, ch chan product.Product) {
+	fmt.Printf("Buscando produto %v\n", id)
+
 	product := repo.GetById(id)
-	ch <- fmt.Sprintf("Produto %s da marca %s está saindo por apenas R$ %v", product.Description, product.Brand, product.Price)
+	ch <- product
+
 }
 
 func main() {
 	repo := product.ProductRepository{}
 	repo.Seed()
 
-	ids := [5]int{1, 2, 3, 4, 5}
+	ids := []int{1, 2, 3, 4, 5}
 
-	ch := make(chan string)
+	ch := make(chan product.Product)
 
 	for _, id := range ids {
-		fmt.Printf("Buscando produto %v\n", id)
 		go getProduct(id, &repo, ch)
 	}
 
-	for v := range ch {
-		fmt.Println(v)
+	for product := range ch {
+		fmt.Printf("O produto %s da marca %s está saindo por apenas %v\n", product.Description, product.Brand, product.Price)
 	}
 
 }
