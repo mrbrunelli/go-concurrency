@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/mrbrunelli/go-concurrency/src/product"
 )
@@ -16,6 +17,8 @@ func getProduct(id int, repo *product.ProductRepository, ch chan product.Product
 }
 
 func main() {
+	start := time.Now()
+
 	repo := product.ProductRepository{}
 	repo.Seed()
 
@@ -25,21 +28,26 @@ func main() {
 	ch := make(chan product.Product)
 
 	for _, id := range ids {
+		// Preciso avisar a main thread que estou criando +1 goroutine
 		wg.Add(1)
 
 		go func(id int) {
+			// Avisar a main thread que essa goroutine terminou
 			defer wg.Done()
 			getProduct(id, &repo, ch)
 		}(id)
 	}
 
+	// Esperar todas goroutines concluírem e então fechar o channel
 	go func() {
 		wg.Wait()
 		close(ch)
 	}()
 
+	// Enquanto houver mensagens no channel, irá consumir
 	for product := range ch {
-		fmt.Printf("O produto %s da marca %s está saindo por apenas %v\n", product.Description, product.Brand, product.Price)
+		fmt.Println(product)
 	}
 
+	fmt.Println(time.Since(start).Seconds(), "segundos")
 }
